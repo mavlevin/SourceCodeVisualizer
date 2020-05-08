@@ -1,7 +1,7 @@
 
 # Visualize Source Code
 
-Visualize how code is distributed among a project's files and folders 
+Visualize how code is distributed among a project's files and folders
 
 ## Todo
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -159,7 +158,7 @@ func buildFileHeirchy(base string) (hierarchy srcDir, err error) {
 	return hierarchy, err
 }
 
-func netHandlerRoot(w http.ResponseWriter, r *http.Request, hierarchy srcDir, rootDir string, errorStr string) {
+func netHandleDisplay(w http.ResponseWriter, r *http.Request, hierarchy srcDir, rootDir string, errorStr string) {
 
 	tmpl, err := template.ParseFiles("FileMap.html")
 	if err != nil {
@@ -175,7 +174,7 @@ func netHandlerRoot(w http.ResponseWriter, r *http.Request, hierarchy srcDir, ro
 	}
 }
 
-func netHandlerDataJSON(w http.ResponseWriter, r *http.Request, hierarchy srcDir, rootDir string) {
+func netHandleHierchyJSON(w http.ResponseWriter, r *http.Request, hierarchy srcDir, rootDir string) {
 	temp := hierarchy.Path
 	_, f := filepath.Split(rootDir)
 	hierarchy.Path = f
@@ -190,6 +189,18 @@ func netHandlerDataJSON(w http.ResponseWriter, r *http.Request, hierarchy srcDir
 	}
 	fmt.Fprintf(w, string(data))
 	hierarchy.Path = temp
+}
+
+func netHandleCrawl(r *http.Request, rootDir string, srcHierchy *srcDir) string {
+	r.ParseForm()
+	rootDir = r.Form["scanPath"][0]
+	var err error
+	log.Println("scanning", rootDir)
+	*srcHierchy, err = buildFileHeirchy(rootDir)
+	if err != nil {
+		return "An error has occured. Ensure you entered a valid directory path.<br />Error: " + err.Error()
+	}
+	return ""
 }
 
 func isSrcFile(p string) bool {
@@ -229,34 +240,20 @@ func main() {
 		log.Println("handling /")
 		errorString := ""
 		if r.Method == "POST" {
-			r.ParseForm()
-			rootDir = r.Form["scanPath"][0]
-			var err error
-			log.Println("scanning", rootDir)
-			srcHierchy, err = buildFileHeirchy(rootDir)
-			if err != nil {
-				errorString = "An error has occured. Ensure you entered a valid directory path.<br />Error: " + err.Error()
-			}
+			// crawl
+			errorString = netHandleCrawl(r, rootDir, &srcHierchy)
 		}
 		// display
-		netHandlerRoot(w, r, srcHierchy, rootDir, errorString)
+		netHandleDisplay(w, r, srcHierchy, rootDir, errorString)
 	})
 
 	// convert srcHierchy -> json format for js
 	http.HandleFunc("/dirdata.json", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("handling /dirdata.json")
-		netHandlerDataJSON(w, r, srcHierchy, rootDir)
+		netHandleHierchyJSON(w, r, srcHierchy, rootDir)
 	})
 
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("handling /test")
-		data, err := ioutil.ReadFile("test.html")
-		if err != nil {
-			log.Panic(err)
-		}
-		fmt.Fprintf(w, string(data))
-	})
-
+	// start server & open browser
 	serverAddr := "localhost:8080"
 	err := openBrowser("http://" + serverAddr + "/display")
 	if err != nil {
