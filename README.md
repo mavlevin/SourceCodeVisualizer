@@ -9,7 +9,6 @@ Visualize how code is distributed among a project's files and folders
 - [ ] change tooltip to not overflow on right or bottom
 - [ ] correctly resize chart when window size changes
 - [ ] add option to set custom source code file extensions
-- [ ] Force tree rebuild when the window dimensions chage
 
 ## Done
 
