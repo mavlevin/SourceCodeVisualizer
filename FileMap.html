@@ -1,0 +1,69 @@
+<head>
+    <script src="//unpkg.com/d3"></script>
+    <script src="//unpkg.com/treemap-chart"></script>
+
+    <style>
+        body {
+            margin: 0
+        }
+        #header {
+            overflow-y: scroll;
+            text-align: center;            
+        }
+        #chart {
+            padding-left: 7px;
+            padding-right: 7px;
+            padding-bottom: 7px;
+        }
+        #errorText {
+            border-radius: 5px;
+            border: red 2px solid;
+            display: inline-block;
+            padding-right: 10px;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <title>Visualizing {{.RootDir}}</title>
+</head>
+
+<body id="body">
+    <div id="header">
+        <h3>Visualizing {{.RootDir}}</h3>
+        <form action="/display" method="post">
+            <input type="text" name="scanPath" placeholder="Source Code Directory Path To Analyse" style="width: 50%; max-width: 1500px;">
+            <input type="submit" value="Analyse">
+        </form> 
+        {{ if .ErrorStr}}
+        <div id="errorText"><p>{{.ErrorStr}}</p></div>
+        {{ else }}
+        <p>Hover, scroll, or click to explore the directory of the source code. Files in the same directory share the same color.</p>
+        {{ end }}
+    </div>
+    <div id="chart"></div>
+
+    <script>
+        function clearChart() {
+            document.getElementById('chart').innerHTML = ""
+        }
+        function displayTree() {            
+            const color = d3.scaleOrdinal(d3.schemePaired);
+
+            fetch('dirdata.json').then(res => res.json()).then(data => {
+                Treemap()
+                    .data(data)
+                    .height(window.innerHeight - document.getElementById('header').getBoundingClientRect().height - 7) // - padding from #chart
+                    .width(window.innerWidth-14) // sum of padding on #chart
+                    .label('name')
+                    .size('size')
+                    .padding(7)
+                    .excludeRoot(true)
+                    .color((d, parent) => color(parent ? parent.data.name : null))
+                    .tooltipContent((d, node) => `Size: <i>${node.value}</i>`)
+                    (document.getElementById('chart'));
+            });            
+        }
+
+        displayTree();
+    </script>
+</body>
