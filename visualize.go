@@ -129,7 +129,7 @@ func (sd *srcDir) AddFile(f srcFile) error {
 	return sd.Dirs[len(sd.Dirs)-1].AddFile(f)
 }
 
-func buildFileHeirchy(base string) (hierarchy srcDir, err error) {
+func buildFileHeirchy(base string, wantedExts []string) (hierarchy srcDir, err error) {
 	hierarchy.Path = ""
 	err = filepath.Walk(base, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -143,7 +143,7 @@ func buildFileHeirchy(base string) (hierarchy srcDir, err error) {
 			// then that means we're crawling a file (not a dir)
 			return fmt.Errorf("Attempting to scan single file")
 		}
-		if !isSrcFile(path) {
+		if !isSrcFile(path, wantedExts) {
 			return nil
 		}
 		relPath, err := filepath.Rel(base, path)
@@ -158,7 +158,7 @@ func buildFileHeirchy(base string) (hierarchy srcDir, err error) {
 	return hierarchy, err
 }
 
-func netHandleDisplay(w http.ResponseWriter, r *http.Request, hierarchy srcDir, rootDir string, errorStr string) {
+func netHandleDisplay(w http.ResponseWriter, r *http.Request, hierarchy srcDir, displayTitle string, errorStr string) {
 
 	tmpl, err := template.ParseFiles("FileMap.html")
 	if err != nil {
@@ -166,9 +166,9 @@ func netHandleDisplay(w http.ResponseWriter, r *http.Request, hierarchy srcDir, 
 	}
 
 	err = tmpl.Execute(w, struct {
-		RootDir  string
-		ErrorStr string
-	}{RootDir: rootDir, ErrorStr: errorStr})
+		DisplayTitle string
+		ErrorStr     string
+	}{DisplayTitle: displayTitle, ErrorStr: errorStr})
 	if err != nil {
 		log.Panic(err)
 	}
@@ -191,25 +191,32 @@ func netHandleHierchyJSON(w http.ResponseWriter, r *http.Request, hierarchy srcD
 	hierarchy.Path = temp
 }
 
-func netHandleCrawl(r *http.Request, rootDir string, srcHierchy *srcDir) string {
+func netHandleCrawl(r *http.Request, rootDir *string, srcHierchy *srcDir, displayTitle *string) string {
 	r.ParseForm()
-	rootDir = r.Form["scanPath"][0]
+	*rootDir = r.Form["scanPath"][0]
+	wantedExts := strings.Split(r.Form["wantedExts"][0], " ")
+	*displayTitle = "🔍 Visualizing " + *rootDir
 	var err error
-	log.Println("scanning", rootDir)
-	*srcHierchy, err = buildFileHeirchy(rootDir)
+	log.Println("scanning", *rootDir)
+	*srcHierchy, err = buildFileHeirchy(*rootDir, wantedExts)
 	if err != nil {
+		*displayTitle = "❌ Failed Visualizing " + *rootDir
 		return "An error has occured. Ensure you entered a valid directory path.<br />Error: " + err.Error()
 	}
 	return ""
 }
 
-func isSrcFile(p string) bool {
-	switch filepath.Ext(p) {
-	case ".c", ".cpp":
+func isSrcFile(p string, wantedExts []string) bool {
+	pe := filepath.Ext(p)
+	if wantedExts[0] == "*" {
 		return true
-	default:
-		return false
 	}
+	for _, e := range wantedExts {
+		if e == pe {
+			return true
+		}
+	}
+	return false
 }
 
 func openBrowser(url string) error {
@@ -234,17 +241,20 @@ func main() {
 	unsetDirValue := `(No path set)`
 	rootDir := unsetDirValue
 	srcHierchy := srcDir{Files: []srcFile{srcFile{Size: 1, Path: rootDir}}}
+	displayTitle := "🔍 Source Code Visualizer"
 
 	// main page
 	http.HandleFunc("/display", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("handling /")
 		errorString := ""
 		if r.Method == "POST" {
 			// crawl
-			errorString = netHandleCrawl(r, rootDir, &srcHierchy)
+			log.Println("handling /display POST")
+			errorString = netHandleCrawl(r, &rootDir, &srcHierchy, &displayTitle)
+		} else {
+			log.Println("handling /display")
 		}
 		// display
-		netHandleDisplay(w, r, srcHierchy, rootDir, errorString)
+		netHandleDisplay(w, r, srcHierchy, displayTitle, errorString)
 	})
 
 	// convert srcHierchy -> json format for js

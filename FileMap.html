@@ -23,21 +23,67 @@
             padding-left: 10px;
             margin-bottom: 10px;
         }
-    </style>
-    <title>Visualizing {{.RootDir}}</title>
+        #scanPath {
+            width: 50%;
+            max-width: 420px;
+            border-radius: 5px;
+        }
+        #submitButton {
+            border-radius: 5px;
+        }
+        #langSelect {
+            border-radius: 5px;
+        } 
+        h1 {
+            font-family:'Courier New', Courier, monospace;
+        }
+        * {
+            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif
+        }
+        #blur{
+            font-size: 40px;
+            color: transparent;
+            text-shadow: 0 0 10px #000;
+        }
+        </style>
+    <title>🔍 Visualizer</title>
 </head>
 
 <body id="body">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+                var blr = document.querySelector("#Blur");
+                var i = 10.0
+                var intervalID = setInterval(function () { 
+                    if (i > 0){
+                        blr.style.textShadow = "0 0 " + i + "px #000";
+                        i -= 1
+                    }
+                    else {
+                        clearInterval(intervalID);
+                        blr.style.textShadow = "0 0 0px #000";
+                    }
+                }, 10);
+            }, false);
+    </script>
     <div id="header">
-        <h3>Visualizing {{.RootDir}}</h3>
+        <h1 id="Blur">Source Code Visualizer</h1>
+        <p>{{.DisplayTitle}}</p>
         <form action="/display" method="post">
-            <input type="text" name="scanPath" placeholder="Source Code Directory Path To Analyse" style="width: 50%; max-width: 1500px;">
-            <input type="submit" value="Analyse">
+            <input id="scanPath" type="text" name="scanPath" placeholder="Source Code Directory">
+            <select id="wantedExts" name="wantedExts">
+                <option value="*">All Files</option>
+                <option value=".c .cpp .h .hpp .cc .cxx">C/C++</option>
+                <option value=".py">Python</option>
+                <option value=".pl .pm">Perl</option>
+                <option value=".go">Go</option>
+            </select>
+            <input id="submitButton" type="submit" value="Analyse">
         </form> 
         {{ if .ErrorStr}}
         <div id="errorText"><p>{{.ErrorStr}}</p></div>
         {{ else }}
-        <p>Hover, scroll, or click to explore the directory of the source code. Files in the same directory share the same color.</p>
+        <p>Hover, scroll, click, and drag to explore the source code hierchy.</p>
         {{ end }}
     </div>
     <div id="chart"></div>
