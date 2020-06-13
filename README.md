@@ -8,10 +8,10 @@ Visualize how code is distributed among a project's files and folders
 - [ ] change to better treemap lib that displays folders too
 - [ ] change tooltip to not overflow on right or bottom
 - [ ] correctly resize chart when window size changes
-- [ ] add option to set custom source code file extensions
 
 ## Done
 
+- [X] add option to set custom source code file extensions
 - [x] give appropiate message if no source files found
 - [x] enter target path in webui
 - [x] Start http server and automatically update
