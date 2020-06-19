@@ -19,6 +19,12 @@ Applications include:
 - [X] Zoom, hover and drag to explore the source code map
 - [X] Set a custom file extension filter to only view relevant source code files
 
+## Building Source Code Visualizer
+
+Simply ```go build visualize.go``` to build Source Code Visualizer.
+
+Execute ```visualize.exe``` to run Source Code Visualizer, which will automatically open the default browser displaying the program's web UI.
+
 ## Road Map
 
 - [ ] Improve the treemap display to better show folders
