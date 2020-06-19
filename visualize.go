@@ -202,7 +202,7 @@ func netHandleCrawl(r *http.Request, rootDir *string, srcHierchy *srcDir, displa
 	*srcHierchy, err = buildFileHeirchy(*rootDir, wantedExts)
 	if err != nil {
 		*displayTitle = "❌ Failed Visualizing " + *rootDir
-		return "An error has occured. Ensure you entered a valid directory path.<br />Error: " + err.Error()
+		return "An error has occured. Ensure you entered a valid directory path. Error: " + err.Error()
 	}
 	return ""
 }
