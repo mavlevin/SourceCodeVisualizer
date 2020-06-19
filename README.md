@@ -1,20 +1,27 @@
 
-# Visualize Source Code
+# Source Code Visualizer
 
-Visualize how code is distributed among a project's files and folders
+Visualize the code distribution in a project.
 
-## Todo
+![Visualizing the source code distribution in Apache httpd](visualizecodevideo.gif)
 
-- [ ] change to better treemap lib that displays folders too
-- [ ] change tooltip to not overflow on right or bottom
-- [ ] correctly resize chart when window size changes
+## Applications
 
-## Done
+Applications include:
 
-- [X] add option to set custom source code file extensions
-- [x] give appropiate message if no source files found
-- [x] enter target path in webui
-- [x] Start http server and automatically update
-- [x] Add title, explentation, link to top of webpage
-- [x] try designing header w/info that won't ruin tree map
-- [x] automatically open browswer when ready
+* Visualizing code distribution for more educated development and managment plans
+* Helping identify needlessly complex code modules
+* Mapping the attack surface from a vulnerability analysis perspective
+
+## Current Features
+
+- [X] Visualize how a projects source code is distributed among files and folders
+- [X] Zoom, hover and drag to explore the source code map
+- [X] Set a custom file extension filter to only view relevant source code files
+
+## Road Map
+
+- [ ] Improve the treemap display to better show folders
+- [ ] Implement CSRF Tokens to mitigate possible information disclosure
+- [ ] Implement autocomplete in the directory input field (according to available files on computer)
+- [ ] Allow custom file extension filters
