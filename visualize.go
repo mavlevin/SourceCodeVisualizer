@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"os"
@@ -26,12 +27,12 @@ type srcFile struct {
 }
 
 func (sf srcFile) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`{"name": "%s", "size": %d}`, sf.Path, sf.Size)), nil
+	return []byte(fmt.Sprintf(`{"name": "%s", "size": %d}`, html.EscapeString(sf.Path), sf.Size)), nil
 }
 
 func (sd srcDir) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString("{\n")
-	_, err := buffer.WriteString(fmt.Sprintf(` "name": "%s"`, strings.ReplaceAll(sd.Path, "\\", "\\\\")))
+	_, err := buffer.WriteString(fmt.Sprintf(` "name": "%s"`, html.EscapeString(strings.ReplaceAll(sd.Path, "\\", "\\\\"))))
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +169,7 @@ func netHandleDisplay(w http.ResponseWriter, r *http.Request, hierarchy srcDir, 
 	err = tmpl.Execute(w, struct {
 		DisplayTitle string
 		ErrorStr     string
-	}{DisplayTitle: displayTitle, ErrorStr: errorStr})
+	}{DisplayTitle: html.EscapeString(displayTitle), ErrorStr: html.EscapeString(errorStr)})
 	if err != nil {
 		log.Panic(err)
 	}
